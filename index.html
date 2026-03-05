@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>逃げろゲーム</title>
+
+<style>
+body{
+    margin:0;
+    background:#222;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    font-family:sans-serif;
+}
+
+#game{
+    width:800px;
+    height:500px;
+    background:#eee;
+    position:relative;
+    overflow:hidden;
+    border:4px solid #000;
+}
+
+.player{
+    width:30px;
+    height:30px;
+    background:blue;
+    position:absolute;
+}
+
+.enemy{
+    width:30px;
+    height:30px;
+    background:red;
+    position:absolute;
+}
+
+#score{
+    position:absolute;
+    top:10px;
+    left:10px;
+    font-size:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+    <div id="score">Score: 0</div>
+    <div id="player" class="player"></div>
+    <div id="enemy" class="enemy"></div>
+</div>
+
+<script>
+
+const game = document.getElementById("game")
+const player = document.getElementById("player")
+const enemy = document.getElementById("enemy")
+const scoreText = document.getElementById("score")
+
+let playerX = 100
+let playerY = 100
+
+let enemyX = 600
+let enemyY = 300
+
+let score = 0
+
+const keys = {}
+
+document.addEventListener("keydown", e=>{
+    keys[e.key] = true
+})
+
+document.addEventListener("keyup", e=>{
+    keys[e.key] = false
+})
+
+function update(){
+
+    if(keys["ArrowLeft"]) playerX -= 5
+    if(keys["ArrowRight"]) playerX += 5
+    if(keys["ArrowUp"]) playerY -= 5
+    if(keys["ArrowDown"]) playerY += 5
+
+    playerX = Math.max(0, Math.min(770, playerX))
+    playerY = Math.max(0, Math.min(470, playerY))
+
+    player.style.left = playerX + "px"
+    player.style.top = playerY + "px"
+
+    let dx = playerX - enemyX
+    let dy = playerY - enemyY
+    let dist = Math.sqrt(dx*dx + dy*dy)
+
+    enemyX += dx / dist * 2
+    enemyY += dy / dist * 2
+
+    enemy.style.left = enemyX + "px"
+    enemy.style.top = enemyY + "px"
+
+    if(dist < 30){
+        alert("ゲームオーバー！ Score: " + score)
+        location.reload()
+    }
+
+    score++
+    scoreText.textContent = "Score: " + score
+
+    requestAnimationFrame(update)
+}
+
+update()
+
+</script>
+
+</body>
+</html>

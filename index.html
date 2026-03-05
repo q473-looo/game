@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>逃げろゲーム</title>
+<title>逃げろゲーム（障害物あり）</title>
 
 <style>
 body{
@@ -38,6 +38,11 @@ body{
     position:absolute;
 }
 
+.obstacle{
+    position:absolute;
+    background:#666;
+}
+
 #score{
     position:absolute;
     top:10px;
@@ -53,63 +58,111 @@ body{
     <div id="score">Score: 0</div>
     <div id="player" class="player"></div>
     <div id="enemy" class="enemy"></div>
+
+    <!-- 障害物 -->
+    <div class="obstacle" style="left:200px;top:100px;width:150px;height:30px;"></div>
+    <div class="obstacle" style="left:400px;top:250px;width:30px;height:150px;"></div>
+    <div class="obstacle" style="left:100px;top:350px;width:200px;height:30px;"></div>
 </div>
 
 <script>
 
-const game = document.getElementById("game")
 const player = document.getElementById("player")
 const enemy = document.getElementById("enemy")
 const scoreText = document.getElementById("score")
+const obstacles = document.querySelectorAll(".obstacle")
 
-let playerX = 100
-let playerY = 100
+let playerX = 50
+let playerY = 50
 
-let enemyX = 600
-let enemyY = 300
+let enemyX = 700
+let enemyY = 400
 
 let score = 0
 
 const keys = {}
 
-document.addEventListener("keydown", e=>{
+document.addEventListener("keydown",e=>{
     keys[e.key] = true
 })
 
-document.addEventListener("keyup", e=>{
+document.addEventListener("keyup",e=>{
     keys[e.key] = false
 })
 
-function update(){
+function isColliding(rect1,rect2){
+    return(
+        rect1.left < rect2.right &&
+        rect1.right > rect2.left &&
+        rect1.top < rect2.bottom &&
+        rect1.bottom > rect2.top
+    )
+}
 
-    if(keys["ArrowLeft"]) playerX -= 5
-    if(keys["ArrowRight"]) playerX += 5
-    if(keys["ArrowUp"]) playerY -= 5
-    if(keys["ArrowDown"]) playerY += 5
+function movePlayer(){
 
-    playerX = Math.max(0, Math.min(770, playerX))
-    playerY = Math.max(0, Math.min(470, playerY))
+    let newX = playerX
+    let newY = playerY
+
+    if(keys["ArrowLeft"]) newX -= 4
+    if(keys["ArrowRight"]) newX += 4
+    if(keys["ArrowUp"]) newY -= 4
+    if(keys["ArrowDown"]) newY += 4
+
+    player.style.left = newX + "px"
+    player.style.top = newY + "px"
+
+    let playerRect = player.getBoundingClientRect()
+
+    let hit = false
+
+    obstacles.forEach(o=>{
+        if(isColliding(playerRect,o.getBoundingClientRect())){
+            hit = true
+        }
+    })
+
+    if(!hit){
+        playerX = newX
+        playerY = newY
+    }
 
     player.style.left = playerX + "px"
     player.style.top = playerY + "px"
+}
+
+function moveEnemy(){
 
     let dx = playerX - enemyX
     let dy = playerY - enemyY
     let dist = Math.sqrt(dx*dx + dy*dy)
 
-    enemyX += dx / dist * 2
-    enemyY += dy / dist * 2
+    enemyX += dx/dist * 1.8
+    enemyY += dy/dist * 1.8
 
     enemy.style.left = enemyX + "px"
     enemy.style.top = enemyY + "px"
+}
 
-    if(dist < 30){
-        alert("ゲームオーバー！ Score: " + score)
+function checkGameOver(){
+
+    const p = player.getBoundingClientRect()
+    const e = enemy.getBoundingClientRect()
+
+    if(isColliding(p,e)){
+        alert("ゲームオーバー！ Score: "+score)
         location.reload()
     }
+}
+
+function update(){
+
+    movePlayer()
+    moveEnemy()
+    checkGameOver()
 
     score++
-    scoreText.textContent = "Score: " + score
+    scoreText.textContent = "Score: "+score
 
     requestAnimationFrame(update)
 }
